@@ -2,41 +2,16 @@ import { Command } from 'commander';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { requireTmdbKey } from '../utils/config.js';
-import { TmdbAPI, directorOf, posterUrl } from '../utils/tmdb.js';
+import { TmdbAPI } from '../utils/tmdb.js';
 import {
   addToWatchlist,
-  getMovie,
   listWatchlist,
   removeFromWatchlist,
-  upsertMovie,
   type WatchlistSort,
 } from '../utils/db.js';
 import { printResult } from '../utils/output.js';
-import type { Movie } from '../utils/types.js';
 import { ensureGenres } from '../utils/genres.js';
-
-async function fetchAndCache(tmdb: TmdbAPI, id: number): Promise<Movie> {
-  const cached = getMovie(id);
-  if (cached) return cached;
-  const details = await tmdb.movie(id, { appendCredits: true });
-  const movie: Movie = {
-    tmdb_id: details.id,
-    imdb_id: details.imdb_id ?? null,
-    title: details.title,
-    release_date: details.release_date ?? null,
-    release_year: details.release_date ? parseInt(details.release_date.slice(0, 4), 10) : null,
-    genres: details.genres?.map((g) => g.name).join(', ') ?? null,
-    overview: details.overview ?? null,
-    poster_url: posterUrl(details.poster_path),
-    tmdb_rating: details.vote_average ?? null,
-    tmdb_votes: details.vote_count ?? null,
-    runtime_minutes: details.runtime ?? null,
-    director: directorOf(details),
-    last_synced: new Date().toISOString(),
-  };
-  upsertMovie(movie);
-  return movie;
-}
+import { ensureMovie } from '../utils/enrich.js';
 
 async function promptPick(max: number): Promise<number | null> {
   const rl = createInterface({ input, output });
@@ -104,7 +79,7 @@ export function registerWatchlist(program: Command): void {
         }
       }
 
-      const movie = await fetchAndCache(tmdb, chosenId);
+      const movie = await ensureMovie(tmdb,chosenId);
       addToWatchlist(movie.tmdb_id);
       printResult(
         {
