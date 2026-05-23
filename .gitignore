@@ -6,3 +6,6 @@ dist
 .DS_Store
 *.tsbuildinfo
 test/.tmp/
+.mvd-goat/
+goat-raw.json
+*.json.tmp
