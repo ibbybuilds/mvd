@@ -21,7 +21,7 @@
     "dev": "tsup --watch",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test test/db.test.ts test/tmdb.test.ts test/omdb.test.ts test/genres.test.ts test/format.test.ts test/cli.test.ts",
+    "test": "node --import tsx --test test/db.test.ts test/tmdb.test.ts test/omdb.test.ts test/genres.test.ts test/format.test.ts test/cli.test.ts test/sync.test.ts",
     "release:patch": "npm run typecheck && npm run build && npm test && npm version patch && git push && git push --tags",
     "release:minor": "npm run typecheck && npm run build && npm test && npm version minor && git push && git push --tags",
     "release:major": "npm run typecheck && npm run build && npm test && npm version major && git push && git push --tags",

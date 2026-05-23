@@ -6,6 +6,7 @@ import { registerSearch } from './commands/search.js';
 import { registerInfo } from './commands/info.js';
 import { registerWatchlist } from './commands/watchlist.js';
 import { registerWatched } from './commands/watched.js';
+import { registerSync } from './commands/sync.js';
 import { TmdbError } from './utils/tmdb.js';
 import { OmdbError } from './utils/omdb.js';
 
@@ -30,6 +31,7 @@ registerSearch(program);
 registerInfo(program);
 registerWatchlist(program);
 registerWatched(program);
+registerSync(program);
 
 program.parseAsync().catch((err) => {
   if (err instanceof TmdbError) {

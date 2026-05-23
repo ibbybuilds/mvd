@@ -49,6 +49,8 @@ mvd unwatch 550                      # back to watchlist, preserves history
 | `mvd watched list` | Show watched movies |
 | `mvd watched mark <id>` | Mark as watched |
 | `mvd unwatch <id>` | Move from watched back to watchlist |
+| `mvd export` | Dump full state (JSON or SQL) |
+| `mvd import <file>` | Restore from export (merge or --replace) |
 
 Every command supports `--help`.
 
@@ -112,6 +114,60 @@ Env vars override `.env` file: `TMDB_API_KEY`, `OMDB_API_KEY`.
 - No spinners, no progress bars, no TTY tricks in piped output
 - `mvd add --no-prompt` for headless disambiguation
 - Re-adding same id is a no-op
+
+## Sync across devices
+
+`mvd` is local-only by design — no cloud account, no telemetry. To sync state across machines, export + ship the snapshot anywhere you want:
+
+```bash
+mvd export --out ~/mvd-snap.json          # dump full state
+mvd import ~/mvd-snap.json                # merge into local db (idempotent)
+mvd import ~/mvd-snap.json --replace      # wipe local + restore from file
+```
+
+### Pattern 1: Syncthing / Dropbox / iCloud (zero-infra)
+
+Put the export in a synced folder. Run on a timer:
+
+```bash
+# crontab -e
+*/30 * * * * /usr/local/bin/mvd export --out ~/Dropbox/mvd/snap.json
+@reboot       /usr/local/bin/mvd import  ~/Dropbox/mvd/snap.json
+```
+
+### Pattern 2: Git (versioned, free)
+
+```bash
+cd ~/mvd-sync && git init
+mvd export --out ./snap.json
+git add snap.json && git commit -m "snap $(date -I)" && git push
+```
+
+JSON diffs cleanly. Use `git log -p snap.json` to see when you added each movie.
+
+### Pattern 3: Litestream (continuous, advanced)
+
+Stream the SQLite WAL to S3/B2/SFTP. No code changes:
+
+```bash
+litestream replicate ~/.mvd/movies.db s3://my-bucket/mvd.db
+# on restore:
+litestream restore -o ~/.mvd/movies.db s3://my-bucket/mvd.db
+```
+
+See [litestream.io](https://litestream.io).
+
+### Merge semantics
+
+`mvd import <file>` (default = merge):
+
+- **movies**: upsert by `tmdb_id` (newest wins, COALESCE preserves enriched fields)
+- **watchlist**: idempotent (re-add same id = no-op)
+- **watched**: upsert by `tmdb_id` (latest record replaces previous)
+- **watched_history**: dedupe by `(tmdb_id, watched_date, archived_at)` triple
+- **genres_cache**: replaced wholesale (newest export wins)
+
+No multi-writer conflict resolution. If two devices edit between syncs, last-export-wins on the conflicting row. For true multi-master, use [Turso/libsql](https://turso.tech) (vendor) or [PouchDB-style CRDTs](https://pouchdb.com) (heavy).
 
 ## Database schema
 
