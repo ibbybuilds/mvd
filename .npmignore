@@ -1,0 +1,8 @@
+src
+test
+tsup.config.ts
+tsconfig.json
+.github
+SPEC.md
+CLAUDE.md
+*.tsbuildinfo

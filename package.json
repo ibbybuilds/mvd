@@ -1,0 +1,55 @@
+{
+  "name": "@ibbybuilds/mvd",
+  "version": "0.1.0",
+  "description": "mvd — Movie discovery + watchlist CLI. Built for humans and AI agents.",
+  "type": "module",
+  "bin": {
+    "mvd": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "SCHEMA.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibbybuilds/mvd.git"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/db.test.ts test/tmdb.test.ts test/omdb.test.ts test/genres.test.ts test/format.test.ts test/cli.test.ts",
+    "release:patch": "npm run typecheck && npm run build && npm test && npm version patch && git push && git push --tags",
+    "release:minor": "npm run typecheck && npm run build && npm test && npm version minor && git push && git push --tags",
+    "release:major": "npm run typecheck && npm run build && npm test && npm version major && git push && git push --tags"
+  },
+  "keywords": [
+    "movies",
+    "cli",
+    "tmdb",
+    "imdb",
+    "watchlist",
+    "agent",
+    "discovery"
+  ],
+  "author": "ibbybuilds",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.5.0",
+    "commander": "^13.1.0",
+    "yaml": "^2.8.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.0.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.3",
+    "typescript": "^5.9.3"
+  }
+}
